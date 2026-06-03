@@ -3,7 +3,7 @@ import 'leaflet/dist/leaflet.css';
 import { LatLngExpression } from 'leaflet';
 
 const Map = () => {
-  const position: LatLngExpression = [8.390019299999999, 124.8844867];
+  const position: LatLngExpression = [8.367951, 124.865832]; //Manolo Fortich = 8.367951, 124.865832
   return (
     <MapContainer center={position} zoom={13} style={{ height: '200px' }}>
       <TileLayer
