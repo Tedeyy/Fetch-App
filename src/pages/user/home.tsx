@@ -1,12 +1,12 @@
 import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar, IonButton } from '@ionic/react';
-import '../assets/css/home.css';
+import '../../assets/css/home.css';
 
 const Home: React.FC = () => {
   return (
     <IonPage>
       <IonHeader>
         <IonToolbar>
-          <IonTitle>Welcome to Fetch</IonTitle>
+          <IonTitle>Fetch</IonTitle>
         </IonToolbar>
       </IonHeader>
       <IonContent fullscreen className="ion-padding">
@@ -16,9 +16,9 @@ const Home: React.FC = () => {
           </IonToolbar>
         </IonHeader>
         <div className="ion-text-center">
-          <h1>Book a new delivery</h1>
+          <h1>Hey User! Going somewhere without a ride?</h1>
           <IonButton expand="block" routerLink="/booking">
-            Book a Delivery
+            Book a Ride
           </IonButton>
         </div>
       </IonContent>
