@@ -1,3 +1,4 @@
+import React, { useEffect, useState } from 'react';
 import { Redirect, Route } from 'react-router-dom';
 import {
   IonApp,
@@ -7,13 +8,18 @@ import {
   IonTabBar,
   IonTabButton,
   IonTabs,
+  IonSpinner,
   setupIonicReact
 } from '@ionic/react';
 import { IonReactRouter } from '@ionic/react-router';
 import { ellipse, square, triangle } from 'ionicons/icons';
+import { Session } from '@supabase/supabase-js';
+import { supabase } from './supabaseClient';
+
 import UserHome from './pages/user/home';
 import UserBooking from './pages/user/bookings';
 import UserAccount from './pages/user/account';
+import Login from './pages/auth/Login';
 
 /* Core CSS required for Ionic components to work properly */
 import '@ionic/react/css/core.css';
@@ -47,42 +53,75 @@ import './theme/variables.css';
 
 setupIonicReact();
 
-const App: React.FC = () => (
-  <IonApp>
-    <IonReactRouter>
-      <IonTabs>
-        <IonRouterOutlet>
-          <Route exact path="/home">
-            <UserHome />
-          </Route>
-          <Route exact path="/bookings">
-            <UserBooking />
-          </Route>
-          <Route path="/account">
-            <UserAccount />
-          </Route>
-          <Route exact path="/">
-            <Redirect to="/home" />
-          </Route>
-        </IonRouterOutlet>
-        <IonTabBar slot="bottom">
-          <IonTabButton tab="tab1" href="/home">
-            <IonIcon aria-hidden="true" icon={triangle} />
-            <IonLabel>Home</IonLabel>
-          </IonTabButton>
-          <IonTabButton tab="booking" href="/bookings">
-            <IonIcon aria-hidden="true" icon={ellipse} />
-            <IonLabel>Bookings</IonLabel>
-          </IonTabButton>
-          <IonTabButton tab="account" href="/account">
-            <IonIcon aria-hidden="true" icon={square} />
-            <IonLabel>Account</IonLabel>
-          </IonTabButton>
-        </IonTabBar>
-      </IonTabs>
-    </IonReactRouter>
-  </IonApp>
-);
+const App: React.FC = () => {
+  const [session, setSession] = useState<Session | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setLoading(false);
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  if (loading) {
+    return (
+      <IonApp>
+        <div style={{ display: 'flex', height: '100%', justifyContent: 'center', alignItems: 'center' }}>
+          <IonSpinner name="crescent" color="primary" />
+        </div>
+      </IonApp>
+    );
+  }
+
+  return (
+    <IonApp>
+      <IonReactRouter>
+        <IonTabs>
+          <IonRouterOutlet>
+            <Route exact path="/login">
+              {session ? <Redirect to="/home" /> : <Login />}
+            </Route>
+            <Route exact path="/home">
+              {!session ? <Redirect to="/login" /> : <UserHome />}
+            </Route>
+            <Route exact path="/bookings">
+              {!session ? <Redirect to="/login" /> : <UserBooking />}
+            </Route>
+            <Route path="/account">
+              {!session ? <Redirect to="/login" /> : <UserAccount />}
+            </Route>
+            <Route exact path="/">
+              <Redirect to={session ? "/home" : "/login"} />
+            </Route>
+          </IonRouterOutlet>
+          
+          <IonTabBar slot="bottom" style={{ display: session ? 'flex' : 'none' }}>
+            <IonTabButton tab="tab1" href="/home">
+              <IonIcon aria-hidden="true" icon={triangle} />
+              <IonLabel>Home</IonLabel>
+            </IonTabButton>
+            <IonTabButton tab="booking" href="/bookings">
+              <IonIcon aria-hidden="true" icon={ellipse} />
+              <IonLabel>Bookings</IonLabel>
+            </IonTabButton>
+            <IonTabButton tab="account" href="/account">
+              <IonIcon aria-hidden="true" icon={square} />
+              <IonLabel>Account</IonLabel>
+            </IonTabButton>
+          </IonTabBar>
+        </IonTabs>
+      </IonReactRouter>
+    </IonApp>
+  );
+};
 
 export default App;
-

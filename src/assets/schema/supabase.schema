@@ -1,0 +1,63 @@
+-- Create a table for public user profiles
+create table profiles (
+  id uuid references auth.users not null primary key,
+  created_at timestamp with time zone default now(),
+  updated_at timestamp with time zone,
+  username text unique,
+  full_name text,
+  birthdate date,
+  contact_number text,
+  address text,
+  barangay text,
+  city text,
+  province text,
+
+  constraint username_length check (char_length(username) >= 3)
+);
+
+-- Set up Row Level Security (RLS)
+alter table profiles
+  enable row level security;
+
+create policy "Public profiles are viewable by everyone." on profiles
+  for select using (true);
+
+create policy "Users can insert their own profile." on profiles
+  for insert with check (auth.uid() = id);
+
+create policy "Users can update own profile." on profiles
+  for update using (auth.uid() = id);
+
+-- Function to update the updated_at column
+create or replace function public.handle_profile_update()
+returns trigger as $$
+begin
+  new.updated_at = now();
+  return new;
+end;
+$$ language plpgsql security definer;
+
+-- Trigger to automatically update the updated_at timestamp on profile updates
+create trigger on_profile_updated
+  before update on public.profiles
+  for each row execute procedure public.handle_profile_update();
+
+-- Function to create a profile for a new user
+create function public.handle_new_user()
+returns trigger as $$
+begin
+  insert into public.profiles (id, username, full_name, birthdate)
+  values (
+    new.id,
+    new.raw_user_meta_data->>'username',
+    new.raw_user_meta_data->>'full_name',
+    (new.raw_user_meta_data->>'birthdate')::date
+  );
+  return new;
+end;
+$$ language plpgsql security definer;
+
+-- Trigger to execute the function after a new user is created in auth.users
+create trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute procedure public.handle_new_user();
