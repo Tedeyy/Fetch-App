@@ -1,0 +1,110 @@
+.profile-completion-content {
+  --background: var(--ion-background-color);
+}
+
+.profile-completion-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100%;
+  padding: 20px;
+}
+
+.profile-completion-card {
+  width: 100%;
+  max-width: 450px;
+  border-radius: 16px;
+  background: var(--ion-card-background, #ffffff);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+  margin: auto;
+}
+
+.profile-completion-header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.profile-completion-header h2 {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--ion-color-primary, #3880ff);
+  margin-bottom: 8px;
+}
+
+.profile-completion-header p {
+  font-size: 14px;
+  color: var(--ion-color-medium, #92949c);
+  margin-top: 0;
+}
+
+.pc-item {
+  --background: var(--ion-color-step-50, #f4f5f8);
+  --border-radius: 12px;
+  margin-bottom: 16px;
+  border: 1px solid var(--ion-color-step-150, #e0e0e0);
+  border-radius: 12px;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.pc-item.ion-focused {
+  border-color: var(--ion-color-primary);
+  box-shadow: 0 0 0 3px rgba(var(--ion-color-primary-rgb, 56,128,255), 0.2);
+}
+
+.pc-input {
+  --padding-start: 16px;
+  --padding-end: 16px;
+}
+
+.pc-button {
+  --border-radius: 12px;
+  --box-shadow: 0 4px 12px rgba(var(--ion-color-primary-rgb, 56,128,255), 0.3);
+  margin-top: 24px;
+  margin-bottom: 8px;
+  font-weight: 600;
+  height: 48px;
+}
+
+.pc-button-outline {
+  --border-radius: 12px;
+  margin-top: 8px;
+  margin-bottom: 8px;
+  font-weight: 600;
+  height: 48px;
+}
+
+.summary-list {
+  background: var(--ion-color-step-50, #f4f5f8);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+.summary-item {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  font-size: 14px;
+}
+
+.summary-item:last-child {
+  margin-bottom: 0;
+}
+
+.summary-label {
+  font-weight: 600;
+  color: var(--ion-color-medium);
+}
+
+.summary-value {
+  color: var(--ion-color-dark);
+  text-align: right;
+  max-width: 60%;
+}
+
+@media (prefers-color-scheme: dark) {
+  .profile-completion-card {
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  }
+}
