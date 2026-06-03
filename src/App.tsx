@@ -11,9 +11,9 @@ import {
 } from '@ionic/react';
 import { IonReactRouter } from '@ionic/react-router';
 import { ellipse, square, triangle } from 'ionicons/icons';
-import Home from './pages/home';
-import Booking from './pages/bookings';
-import Account from './pages/account';
+import UserHome from './pages/user/home';
+import UserBooking from './pages/user/bookings';
+import UserAccount from './pages/user/account';
 
 /* Core CSS required for Ionic components to work properly */
 import '@ionic/react/css/core.css';
@@ -52,25 +52,25 @@ const App: React.FC = () => (
     <IonReactRouter>
       <IonTabs>
         <IonRouterOutlet>
-          <Route exact path="/Home">
-            <Home />
+          <Route exact path="/home">
+            <UserHome />
           </Route>
-          <Route exact path="/booking">
-            <Booking />
+          <Route exact path="/bookings">
+            <UserBooking />
           </Route>
           <Route path="/account">
-            <Account />
+            <UserAccount />
           </Route>
           <Route exact path="/">
-            <Redirect to="/Home" />
+            <Redirect to="/home" />
           </Route>
         </IonRouterOutlet>
         <IonTabBar slot="bottom">
-          <IonTabButton tab="tab1" href="/Home">
+          <IonTabButton tab="tab1" href="/home">
             <IonIcon aria-hidden="true" icon={triangle} />
             <IonLabel>Home</IonLabel>
           </IonTabButton>
-          <IonTabButton tab="booking" href="/booking">
+          <IonTabButton tab="booking" href="/bookings">
             <IonIcon aria-hidden="true" icon={ellipse} />
             <IonLabel>Bookings</IonLabel>
           </IonTabButton>
