@@ -1,5 +1,6 @@
-import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar, IonButton } from '@ionic/react';
+import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar, IonButton, IonCard, IonCardContent } from '@ionic/react';
 import '../../assets/css/home.css';
+import Map from '../../components/Map';
 
 const Home: React.FC = () => {
   return (
@@ -21,6 +22,11 @@ const Home: React.FC = () => {
             Book a Ride
           </IonButton>
         </div>
+        <IonCard>
+          <IonCardContent>
+            <Map />
+          </IonCardContent>
+        </IonCard>
       </IonContent>
     </IonPage>
   );
