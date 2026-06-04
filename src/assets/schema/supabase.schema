@@ -350,6 +350,66 @@ create table public.bookings (
 );
 
 -- ==========================================
+-- BOOKINGS RLS
+-- ==========================================
+
+alter table public.bookings
+enable row level security;
+
+-- Customer can create their own booking
+create policy "Customer can insert own booking"
+on public.bookings
+for insert
+with check (
+    auth.uid() = customer_id
+);
+
+-- Customer can view their own bookings
+create policy "Customer can view own bookings"
+on public.bookings
+for select
+using (
+    auth.uid() = customer_id
+);
+
+-- Customer can cancel their own booking
+create policy "Customer can update own booking"
+on public.bookings
+for update
+using (
+    auth.uid() = customer_id
+);
+
+-- Rider can view bookings assigned to them or waiting
+create policy "Rider can view available bookings"
+on public.bookings
+for select
+using (
+    auth.uid() = rider_id
+    or status = 'Waiting for Rider'
+);
+
+-- Rider can update bookings assigned to them
+create policy "Rider can update assigned booking"
+on public.bookings
+for update
+using (
+    auth.uid() = rider_id
+);
+
+-- Admin full access
+create policy "Admin full access to bookings"
+on public.bookings
+for all
+using (
+    exists (
+        select 1 from public.profiles p
+        where p.id = auth.uid()
+        and p.role = 'admin'
+    )
+);
+
+-- ==========================================
 -- 1. LIVE CURRENT LOCATION (FAST READ)
 -- ==========================================
 
@@ -572,3 +632,41 @@ on public.surge_pricing(is_active);
 
 create index idx_distance_tiers_service_type
 on public.fare_distance_tiers(service_type);
+
+-- Enable RLS on bookings
+alter table public.bookings enable row level security;
+
+-- Customer can create their own booking
+create policy "Customer can insert own booking"
+on public.bookings for insert
+with check (auth.uid() = customer_id);
+
+-- Customer can view their own bookings
+create policy "Customer can view own bookings"
+on public.bookings for select
+using (auth.uid() = customer_id);
+
+-- Customer can update their own booking (e.g. cancel)
+create policy "Customer can update own booking"
+on public.bookings for update
+using (auth.uid() = customer_id);
+
+-- Riders can view bookings waiting or assigned to them
+create policy "Rider can view available bookings"
+on public.bookings for select
+using (auth.uid() = rider_id or status = 'Waiting for Rider');
+
+-- Rider can update bookings assigned to them
+create policy "Rider can update assigned booking"
+on public.bookings for update
+using (auth.uid() = rider_id);
+
+-- Admin full access
+create policy "Admin full access to bookings"
+on public.bookings for all
+using (
+    exists (
+        select 1 from public.profiles p
+        where p.id = auth.uid() and p.role = 'admin'
+    )
+);

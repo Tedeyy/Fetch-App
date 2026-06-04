@@ -1,19 +1,26 @@
 import React, { useState } from 'react';
-import { IonContent, IonPage, IonButton, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonModal, IonSegment, IonSegmentButton, IonLabel, IonItem, IonInput, IonSelect, IonSelectOption, IonIcon, IonTextarea } from '@ionic/react';
-import { locationOutline, mapOutline, carOutline, cubeOutline, chatbubbleOutline } from 'ionicons/icons';
+import { IonContent, IonPage, IonButton, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonModal, IonSegment, IonSegmentButton, IonLabel, IonItem, IonInput, IonIcon, IonTextarea, useIonToast } from '@ionic/react';
+import { locationOutline, mapOutline, cubeOutline, chatbubbleOutline } from 'ionicons/icons';
 import '../../assets/css/home.css';
 import Map from '../../components/Map';
+import { supabase } from '../../supabaseClient';
 
 const Home: React.FC = () => {
+  const [presentToast] = useIonToast();
+
   const [isBooking, setIsBooking] = useState(false);
   const [showModal, setShowModal] = useState(false);
+  const [waitingForRider, setWaitingForRider] = useState(false);
   
   const [serviceType, setServiceType] = useState('Pahatod');
   const [activeLocationField, setActiveLocationField] = useState<'pickup' | 'dropoff'>('pickup');
   
   const [pickupName, setPickupName] = useState('Fetching location...');
-  const [dropoffName, setDropoffName] = useState('');
+  const [dropoffName, setDropoffName] = useState('Unknown Location');
   
+  const [pickupCoords, setPickupCoords] = useState<[number, number]>([8.367951, 124.865832]);
+  const [dropoffCoords, setDropoffCoords] = useState<[number, number]>([8.368951, 124.866832]);
+
   const [item, setItem] = useState('');
   const [notes, setNotes] = useState('');
 
@@ -22,11 +29,61 @@ const Home: React.FC = () => {
     setShowModal(true);
   };
 
-  const handleLocationSelect = (locationName: string, lat: number, lng: number) => {
-    if (activeLocationField === 'pickup') {
-      setPickupName(locationName);
-    } else {
-      setDropoffName(locationName);
+  const handlePickupUpdate = (name: string, lat: number, lng: number) => {
+    setPickupName(name);
+    setPickupCoords([lat, lng]);
+  };
+
+  const handleDropoffUpdate = (name: string, lat: number, lng: number) => {
+    setDropoffName(name);
+    setDropoffCoords([lat, lng]);
+  };
+
+  const confirmBooking = async () => {
+    try {
+      // 1. Get authenticated user
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError || !user) {
+        presentToast({
+          message: 'Please log in to book a ride.',
+          duration: 3000,
+          color: 'danger'
+        });
+        return;
+      }
+
+      // 2. Insert into bookings table
+      const { error } = await supabase
+        .from('bookings')
+        .insert([{
+          customer_id: user.id,
+          booking_type: serviceType,
+          status: 'Waiting for Rider',
+          pickup_address: pickupName,
+          pickup_latitude: pickupCoords[0],
+          pickup_longitude: pickupCoords[1],
+          dropoff_address: dropoffName,
+          dropoff_latitude: dropoffCoords[0],
+          dropoff_longitude: dropoffCoords[1],
+          item_description: serviceType === 'Padala' ? item : null,
+          customer_to_rider_notes: notes || null,
+        }]);
+
+      if (error) {
+        throw error;
+      }
+
+      // 3. Update UI State
+      setShowModal(false);
+      setWaitingForRider(true);
+
+    } catch (error: any) {
+      console.error(error);
+      presentToast({
+        message: 'Failed to create booking: ' + error.message,
+        duration: 3000,
+        color: 'danger'
+      });
     }
   };
 
@@ -37,15 +94,19 @@ const Home: React.FC = () => {
           
           <div style={{ flex: 1, position: 'relative' }}>
             <Map 
-              isBlurred={!isBooking} 
-              isBooking={isBooking} 
+              isBlurred={!isBooking && !waitingForRider} 
+              isBooking={isBooking && !waitingForRider} 
               activeField={activeLocationField}
-              onLocationSelect={handleLocationSelect} 
+              pickupCoords={pickupCoords}
+              dropoffCoords={dropoffCoords}
+              onPickupUpdate={handlePickupUpdate}
+              onDropoffUpdate={handleDropoffUpdate}
+              routePoints={waitingForRider ? { pickup: pickupCoords, dropoff: dropoffCoords } : null}
             />
           </div>
           
-          {/* Overlay Card when not booking */}
-          {!isBooking && (
+          {/* Overlay Card when not booking and not waiting */}
+          {!isBooking && !waitingForRider && (
             <div style={{
               position: 'absolute',
               bottom: '30px',
@@ -71,14 +132,41 @@ const Home: React.FC = () => {
             </div>
           )}
 
+          {/* Waiting for Rider Box */}
+          {waitingForRider && (
+            <div style={{
+              position: 'absolute',
+              bottom: '30px',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              width: '90%',
+              maxWidth: '400px',
+              zIndex: 1000,
+              backgroundColor: 'white',
+              padding: '20px',
+              borderRadius: '20px',
+              boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
+              textAlign: 'center'
+            }}>
+              <h3 style={{ margin: '0 0 10px 0', fontWeight: 'bold', color: 'var(--ion-color-primary)' }}>
+                Waiting for Rider...
+              </h3>
+              <p style={{ margin: 0, color: '#666', fontSize: '0.9rem' }}>
+                We are sending your {serviceType} request to nearby riders. Please wait.
+              </p>
+            </div>
+          )}
+
           {/* Bottom Sheet Modal for Booking */}
           <IonModal
             isOpen={showModal}
             initialBreakpoint={0.5}
             breakpoints={[0, 0.5, 0.9]}
             onDidDismiss={() => {
-              setShowModal(false);
-              setIsBooking(false);
+              if (!waitingForRider) {
+                setShowModal(false);
+                setIsBooking(false);
+              }
             }}
             backdropDismiss={false}
             backdropBreakpoint={0.5}
@@ -132,7 +220,7 @@ const Home: React.FC = () => {
                 <IonInput 
                   label="Dropoff Location" 
                   labelPlacement="floating" 
-                  placeholder="Tap here, then drag map pin" 
+                  placeholder="Tap here, then drag blue pin" 
                   value={dropoffName}
                   readonly
                   onFocus={() => setActiveLocationField('dropoff')}
@@ -166,7 +254,7 @@ const Home: React.FC = () => {
                 />
               </IonItem>
 
-              <IonButton expand="block" shape="round" className="ion-margin-top" style={{ height: '50px' }}>
+              <IonButton expand="block" shape="round" className="ion-margin-top" style={{ height: '50px' }} onClick={confirmBooking}>
                 Confirm Booking
               </IonButton>
             </IonContent>
