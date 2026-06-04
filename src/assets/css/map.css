@@ -5,3 +5,7 @@
 .leaflet-control-zoom {
     display: none !important;
 }
+
+.leaflet-routing-container {
+    display: none !important;
+}
