@@ -15,6 +15,7 @@ import { IonReactRouter } from '@ionic/react-router';
 import { ellipse, square, triangle } from 'ionicons/icons';
 import { Session } from '@supabase/supabase-js';
 import { supabase } from './supabaseClient';
+import { Analytics } from '@vercel/analytics/react';
 
 import UserHome from './pages/user/home';
 import UserBooking from './pages/user/bookings';
@@ -121,6 +122,7 @@ const App: React.FC = () => {
 
   return (
     <IonApp>
+      <Analytics />
       <IonReactRouter>
         <IonTabs>
           <IonRouterOutlet>
