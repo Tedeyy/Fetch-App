@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { IonContent, IonPage, IonButton, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonModal, IonSegment, IonSegmentButton, IonLabel, IonItem, IonInput, IonSelect, IonSelectOption, IonIcon } from '@ionic/react';
-import { locationOutline, mapOutline, carOutline } from 'ionicons/icons';
+import { IonContent, IonPage, IonButton, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonModal, IonSegment, IonSegmentButton, IonLabel, IonItem, IonInput, IonSelect, IonSelectOption, IonIcon, IonTextarea } from '@ionic/react';
+import { locationOutline, mapOutline, carOutline, cubeOutline, chatbubbleOutline } from 'ionicons/icons';
 import '../../assets/css/home.css';
 import Map from '../../components/Map';
 
@@ -9,9 +9,13 @@ const Home: React.FC = () => {
   const [showModal, setShowModal] = useState(false);
   
   const [serviceType, setServiceType] = useState('Pahatod');
+  const [activeLocationField, setActiveLocationField] = useState<'pickup' | 'dropoff'>('pickup');
+  
   const [pickupName, setPickupName] = useState('Fetching location...');
   const [dropoffName, setDropoffName] = useState('');
-  const [vehicle, setVehicle] = useState('Motorcycle - Automatic');
+  
+  const [item, setItem] = useState('');
+  const [notes, setNotes] = useState('');
 
   const startBooking = () => {
     setIsBooking(true);
@@ -19,8 +23,11 @@ const Home: React.FC = () => {
   };
 
   const handleLocationSelect = (locationName: string, lat: number, lng: number) => {
-    // For simplicity, we just update the pickup location when the pin is dragged.
-    setPickupName(locationName);
+    if (activeLocationField === 'pickup') {
+      setPickupName(locationName);
+    } else {
+      setDropoffName(locationName);
+    }
   };
 
   return (
@@ -32,6 +39,7 @@ const Home: React.FC = () => {
             <Map 
               isBlurred={!isBooking} 
               isBooking={isBooking} 
+              activeField={activeLocationField}
               onLocationSelect={handleLocationSelect} 
             />
           </div>
@@ -96,41 +104,66 @@ const Home: React.FC = () => {
               </IonSegment>
 
               {/* Location Fields */}
-              <IonItem className="ion-margin-bottom" style={{ borderRadius: '10px' }}>
+              <IonItem 
+                className="ion-margin-bottom" 
+                style={{ 
+                  borderRadius: '10px', 
+                  border: activeLocationField === 'pickup' ? '2px solid var(--ion-color-primary)' : 'none' 
+                }}
+              >
                 <IonIcon icon={locationOutline} slot="start" color="primary" />
                 <IonInput 
                   label="Pickup Location" 
                   labelPlacement="floating" 
                   value={pickupName} 
                   readonly 
+                  onFocus={() => setActiveLocationField('pickup')}
                 />
               </IonItem>
 
-              <IonItem className="ion-margin-bottom" style={{ borderRadius: '10px' }}>
+              <IonItem 
+                className="ion-margin-bottom" 
+                style={{ 
+                  borderRadius: '10px',
+                  border: activeLocationField === 'dropoff' ? '2px solid var(--ion-color-secondary)' : 'none' 
+                }}
+              >
                 <IonIcon icon={mapOutline} slot="start" color="secondary" />
                 <IonInput 
                   label="Dropoff Location" 
                   labelPlacement="floating" 
-                  placeholder="Where to?" 
+                  placeholder="Tap here, then drag map pin" 
                   value={dropoffName}
-                  onIonInput={e => setDropoffName(e.detail.value as string)}
+                  readonly
+                  onFocus={() => setActiveLocationField('dropoff')}
                 />
               </IonItem>
 
-              {/* Vehicle Selection */}
+              {/* Padala Item Field */}
+              {serviceType === 'Padala' && (
+                <IonItem className="ion-margin-bottom" style={{ borderRadius: '10px' }}>
+                  <IonIcon icon={cubeOutline} slot="start" color="warning" />
+                  <IonInput 
+                    label="Item Description" 
+                    labelPlacement="floating" 
+                    placeholder="What are you sending?" 
+                    value={item}
+                    onIonInput={e => setItem(e.detail.value as string)}
+                  />
+                </IonItem>
+              )}
+
+              {/* Notes for Rider */}
               <IonItem className="ion-margin-bottom" style={{ borderRadius: '10px' }}>
-                <IonIcon icon={carOutline} slot="start" color="tertiary" />
-                <IonSelect 
-                  label="Vehicle Type" 
+                <IonIcon icon={chatbubbleOutline} slot="start" color="medium" />
+                <IonTextarea 
+                  label="Notes for Rider" 
                   labelPlacement="floating" 
-                  value={vehicle} 
-                  onIonChange={e => setVehicle(e.detail.value)}
-                >
-                  <IonSelectOption value="Motorcycle - Automatic">Motorcycle - Automatic</IonSelectOption>
-                  <IonSelectOption value="Motorcycle - Manual">Motorcycle - Manual</IonSelectOption>
-                  <IonSelectOption value="Car - 4 Seater">Car - 4 Seater</IonSelectOption>
-                  <IonSelectOption value="Tricycle">Tricycle</IonSelectOption>
-                </IonSelect>
+                  placeholder="Any specific instructions?" 
+                  value={notes}
+                  onIonInput={e => setNotes(e.detail.value as string)}
+                  autoGrow
+                />
               </IonItem>
 
               <IonButton expand="block" shape="round" className="ion-margin-top" style={{ height: '50px' }}>

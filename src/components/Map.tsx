@@ -36,10 +36,11 @@ const reverseGeocode = async (lat: number, lng: number): Promise<string> => {
 interface MapProps {
   isBlurred?: boolean;
   isBooking?: boolean;
+  activeField?: 'pickup' | 'dropoff';
   onLocationSelect?: (locationName: string, lat: number, lng: number) => void;
 }
 
-const Map = ({ isBlurred = false, isBooking = false, onLocationSelect }: MapProps) => {
+const Map = ({ isBlurred = false, isBooking = false, activeField = 'pickup', onLocationSelect }: MapProps) => {
   const [position, setPosition] = useState<L.LatLngExpression>([8.367951, 124.865832]);
   const markerRef = useRef<L.Marker>(null);
 
@@ -90,7 +91,7 @@ const Map = ({ isBlurred = false, isBooking = false, onLocationSelect }: MapProp
         >
           {isBooking && (
             <Popup minWidth={90}>
-              <span>Drag me to set location</span>
+              <span>Drag me to set <strong>{activeField === 'pickup' ? 'Pickup' : 'Dropoff'}</strong></span>
             </Popup>
           )}
         </Marker>
